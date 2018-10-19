@@ -1,0 +1,98 @@
+BEGIN;
+--
+-- Create model BitcoinAddress
+--
+CREATE TABLE "btc_bitcoinaddress" ("id" serial NOT NULL PRIMARY KEY, "address" varchar(100) NOT NULL, "isUsed" boolean NULL, "comment" varchar(400) NULL);
+--
+-- Create model Block
+--
+CREATE TABLE "btc_block" ("id" serial NOT NULL PRIMARY KEY, "nVersion" integer NOT NULL, "hashPrevBlock" varchar(64) NOT NULL UNIQUE, "hashMerkleRoot" varchar(64) NOT NULL, "nTime" timestamp with time zone NOT NULL, "hash" varchar(64) NOT NULL UNIQUE, "n" integer NOT NULL);
+--
+-- Create model OutPoint
+--
+CREATE TABLE "btc_outpoint" ("id" serial NOT NULL PRIMARY KEY, "hash" varchar(64) NOT NULL);
+--
+-- Create model Sign
+--
+CREATE TABLE "btc_sign" ("id" serial NOT NULL PRIMARY KEY, "txinid" integer NOT NULL, "r" text NOT NULL UNIQUE, "s" text NOT NULL);
+--
+-- Create model Tx
+--
+CREATE TABLE "btc_tx" ("id" serial NOT NULL PRIMARY KEY, "nVersion" integer NOT NULL, "nLockTime" bigint NOT NULL, "hash" varchar(64) NOT NULL);
+--
+-- Create model TxIn
+--
+CREATE TABLE "btc_txin" ("id" serial NOT NULL PRIMARY KEY, "scriptSig" text NOT NULL, "prevout_id" integer NOT NULL);
+--
+-- Create model TxOut
+--
+CREATE TABLE "btc_txout" ("id" serial NOT NULL PRIMARY KEY, "nValue" bigint NOT NULL, "scriptPubKey" text NOT NULL, "n" integer NOT NULL, "isSpent" boolean NOT NULL, "bitcoinAddress_id" integer NULL);
+--
+-- Add field vin to tx
+--
+CREATE TABLE "btc_tx_vin" ("id" serial NOT NULL PRIMARY KEY, "tx_id" integer NOT NULL, "txin_id" integer NOT NULL);
+--
+-- Add field vout to tx
+--
+CREATE TABLE "btc_tx_vout" ("id" serial NOT NULL PRIMARY KEY, "tx_id" integer NOT NULL, "txout_id" integer NOT NULL);
+--
+-- Create index btc_sign_r_43308a_idx on field(s) r of model sign
+--
+CREATE INDEX "btc_sign_r_43308a_idx" ON "btc_sign" ("r");
+--
+-- Add field n to outpoint
+--
+ALTER TABLE "btc_outpoint" ADD COLUMN "n_id" integer NULL;
+--
+-- Add field vtx to block
+--
+CREATE TABLE "btc_block_vtx" ("id" serial NOT NULL PRIMARY KEY, "block_id" integer NOT NULL, "tx_id" integer NOT NULL);
+--
+-- Create index btc_bitcoin_address_eb00de_idx on field(s) address of model bitcoinaddress
+--
+CREATE INDEX "btc_bitcoin_address_eb00de_idx" ON "btc_bitcoinaddress" ("address");
+--
+-- Create index btc_txout_n_bd6327_idx on field(s) n, scriptPubKey of model txout
+--
+CREATE INDEX "btc_txout_n_bd6327_idx" ON "btc_txout" ("n", "scriptPubKey");
+--
+-- Create index btc_txin_prevout_25e5a3_idx on field(s) prevout of model txin
+--
+CREATE INDEX "btc_txin_prevout_25e5a3_idx" ON "btc_txin" ("prevout_id");
+--
+-- Create index btc_tx_hash_41abb0_idx on field(s) hash of model tx
+--
+CREATE INDEX "btc_tx_hash_41abb0_idx" ON "btc_tx" ("hash");
+--
+-- Create index btc_outpoin_hash_8fea4f_idx on field(s) hash, n of model outpoint
+--
+CREATE INDEX "btc_outpoin_hash_8fea4f_idx" ON "btc_outpoint" ("hash", "n_id");
+--
+-- Create index btc_block_hash_fb6990_idx on field(s) hash, hashPrevBlock, nTime of model block
+--
+CREATE INDEX "btc_block_hash_fb6990_idx" ON "btc_block" ("hash", "hashPrevBlock", "nTime");
+CREATE INDEX "btc_block_hashPrevBlock_2171a7c4_like" ON "btc_block" ("hashPrevBlock" varchar_pattern_ops);
+CREATE INDEX "btc_block_hash_1cec8877_like" ON "btc_block" ("hash" varchar_pattern_ops);
+CREATE INDEX "btc_sign_r_c2facb64_like" ON "btc_sign" ("r" text_pattern_ops);
+ALTER TABLE "btc_txin" ADD CONSTRAINT "btc_txin_prevout_id_6a645bde_fk_btc_outpoint_id" FOREIGN KEY ("prevout_id") REFERENCES "btc_outpoint" ("id") DEFERRABLE INITIALLY DEFERRED;
+CREATE INDEX "btc_txin_prevout_id_6a645bde" ON "btc_txin" ("prevout_id");
+ALTER TABLE "btc_txout" ADD CONSTRAINT "btc_txout_bitcoinAddress_id_6e1d2260_fk_btc_bitcoinaddress_id" FOREIGN KEY ("bitcoinAddress_id") REFERENCES "btc_bitcoinaddress" ("id") DEFERRABLE INITIALLY DEFERRED;
+CREATE INDEX "btc_txout_bitcoinAddress_id_6e1d2260" ON "btc_txout" ("bitcoinAddress_id");
+ALTER TABLE "btc_tx_vin" ADD CONSTRAINT "btc_tx_vin_tx_id_e7746349_fk_btc_tx_id" FOREIGN KEY ("tx_id") REFERENCES "btc_tx" ("id") DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE "btc_tx_vin" ADD CONSTRAINT "btc_tx_vin_txin_id_53a3b09a_fk_btc_txin_id" FOREIGN KEY ("txin_id") REFERENCES "btc_txin" ("id") DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE "btc_tx_vin" ADD CONSTRAINT btc_tx_vin_tx_id_txin_id_06a4ca37_uniq UNIQUE ("tx_id", "txin_id");
+CREATE INDEX "btc_tx_vin_tx_id_e7746349" ON "btc_tx_vin" ("tx_id");
+CREATE INDEX "btc_tx_vin_txin_id_53a3b09a" ON "btc_tx_vin" ("txin_id");
+ALTER TABLE "btc_tx_vout" ADD CONSTRAINT "btc_tx_vout_tx_id_df0c9d87_fk_btc_tx_id" FOREIGN KEY ("tx_id") REFERENCES "btc_tx" ("id") DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE "btc_tx_vout" ADD CONSTRAINT "btc_tx_vout_txout_id_234f551f_fk_btc_txout_id" FOREIGN KEY ("txout_id") REFERENCES "btc_txout" ("id") DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE "btc_tx_vout" ADD CONSTRAINT btc_tx_vout_tx_id_txout_id_5758cf3a_uniq UNIQUE ("tx_id", "txout_id");
+CREATE INDEX "btc_tx_vout_tx_id_df0c9d87" ON "btc_tx_vout" ("tx_id");
+CREATE INDEX "btc_tx_vout_txout_id_234f551f" ON "btc_tx_vout" ("txout_id");
+CREATE INDEX "btc_outpoint_n_id_5d02cd3a" ON "btc_outpoint" ("n_id");
+-- ALTER TABLE "btc_outpoint" ADD CONSTRAINT "btc_outpoint_n_id_5d02cd3a_fk_btc_txout_id" FOREIGN KEY ("n_id") REFERENCES "btc_txout" ("id") DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE "btc_block_vtx" ADD CONSTRAINT "btc_block_vtx_block_id_c8be5bee_fk_btc_block_id" FOREIGN KEY ("block_id") REFERENCES "btc_block" ("id") DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE "btc_block_vtx" ADD CONSTRAINT "btc_block_vtx_tx_id_be11161b_fk_btc_tx_id" FOREIGN KEY ("tx_id") REFERENCES "btc_tx" ("id") DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE "btc_block_vtx" ADD CONSTRAINT btc_block_vtx_block_id_tx_id_d19d1bb4_uniq UNIQUE ("block_id", "tx_id");
+CREATE INDEX "btc_block_vtx_block_id_c8be5bee" ON "btc_block_vtx" ("block_id");
+CREATE INDEX "btc_block_vtx_tx_id_be11161b" ON "btc_block_vtx" ("tx_id");
+COMMIT;
