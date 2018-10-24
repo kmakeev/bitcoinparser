@@ -214,6 +214,7 @@ int main(int argc, char *argv[])
         if (db.getDublicateAddresses(addrsWithDublicate)) {
             for (QString & raw : addrsWithDublicate){
                 qDebug() << "\r" << raw;
+                 addr.clear();
                 if (!db.getBitcoinAddresses(std::make_tuple(raw), addr)){
                     qDebug() << "Read bitcoinaddresses list from DB has ERROR!";
                     return EXIT_FAILURE;
