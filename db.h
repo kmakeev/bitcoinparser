@@ -35,8 +35,12 @@ public:
     bool addTxVout(const std::tuple<unsigned int, unsigned int>  & tx_vout);
     QVariant addTxIn(const std::tuple<unsigned int, QString>  & txIn);
     QVariant addTxOut(const std::tuple<unsigned int, QString, int, unsigned int>  & txOut);
+    bool updateIdAddressInTxOut(const std::tuple<unsigned int> & txOutId,  const std::tuple<unsigned int> & newTxOutId);
     QVariant addOutPoint(const std::tuple<QString, int>  & outPoint);
     QVariant addBitcoinAddress(const std::tuple<QString>  & address);
+    bool getBitcoinAddresses(const std::tuple<QString> str, std::vector<int> & addresses);
+    bool removeBitcoinAddress(const std::tuple<int>  & id);
+    bool getDublicateAddresses(std::vector<QString> & addresses);
 
 private:
     QSqlDatabase activedb;

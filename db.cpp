@@ -242,6 +242,27 @@ QVariant Db::addTxOut(const std::tuple<unsigned int, QString, int, unsigned int>
 
 //******************************************************************************************
 //******************************************************************************************
+bool Db::updateIdAddressInTxOut(const std::tuple<unsigned int> & oldAddrId,  const std::tuple<unsigned int> & newAddrId)
+{
+    QSqlQuery q(activedb);
+
+    if (!q.prepare("UPDATE btc_txout SET \"bitcoinAddress_id\" = :addr "
+                   "WHERE \"bitcoinAddress_id\"= :id")) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    q.bindValue(":addr",         std::get<0>(newAddrId));
+    q.bindValue(":id",           std::get<0>(oldAddrId));
+
+    if (!q.exec()) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    return true;
+}
+
+//******************************************************************************************
+//******************************************************************************************
 QVariant Db::addOutPoint(const std::tuple<QString, int>  & outPoint)
 {
     QSqlQuery q(activedb);
@@ -279,5 +300,73 @@ QVariant Db::addBitcoinAddress(const std::tuple<QString>  & address)
         return QVariant();
     }
     return q.lastInsertId();
+
+}
+
+//******************************************************************************************
+//******************************************************************************************
+bool Db::removeBitcoinAddress(const std::tuple<int>  & id)
+{
+    QSqlQuery q(activedb);
+
+    if (!q.prepare("DELETE FROM btc_bitcoinaddress WHERE id=:id")) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    q.bindValue(":id",         std::get<0>(id));
+    if (!q.exec()) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    return true;
+
+}
+//******************************************************************************************
+//******************************************************************************************
+bool Db::getBitcoinAddresses(const std::tuple<QString> str, std::vector<int> & addresses)
+{
+    QSqlQuery q(activedb);
+
+    if (!q.prepare("SELECT id "
+                   "FROM btc_bitcoinaddress "
+                   "WHERE address= :addr; ")) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+     q.bindValue(":addr",         std::get<0>(str));
+    if (!q.exec()) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    while (q.next())
+    {
+        addresses.push_back(q.value(0).toInt());
+    }
+    return true;
+
+}
+
+//******************************************************************************************
+//******************************************************************************************
+bool Db::getDublicateAddresses(std::vector<QString> & addresses)
+{
+    QSqlQuery q(activedb);
+
+    if (!q.prepare("select address, count(*) "
+                   "from btc_bitcoinaddress "
+                   "group by address "
+                   "having count(*) > 1")) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    if (!q.exec()) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    while (q.next())
+    {
+        addresses.push_back(q.value(0).toString());
+    }
+    return true;
 
 }
