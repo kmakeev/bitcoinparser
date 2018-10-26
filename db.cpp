@@ -242,6 +242,86 @@ QVariant Db::addTxOut(const std::tuple<unsigned int, QString, int, unsigned int>
 
 //******************************************************************************************
 //******************************************************************************************
+bool Db::getTxOutToSpent(const std::tuple<QString, unsigned int> raw,  std::tuple<unsigned int> & idTxOut)
+{
+    QSqlQuery q(activedb);
+
+    if (!q.prepare("select btc_txout.id, btc_txout.n, btc_tx_vout.tx_id, btc_tx.hash  "
+                   "from btc_txout inner join btc_tx_vout on btc_txout.id = btc_tx_vout.txout_id "
+                   "inner join btc_tx on btc_tx.id = btc_tx_vout.tx_id and btc_txout.n= :n and btc_tx.hash= :hash;")) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    q.bindValue(":hash",        std::get<0>(raw));
+    q.bindValue(":n",           std::get<1>(raw));
+
+    if (!q.exec()) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    if (q.size()>1) {
+        qDebug() << "More TxOut to spent ERROR. Size - " << q.size();
+        return false;
+    } else if (q.size()==0) {
+        qDebug() << "Not Found TxOut to spent. Size - " << q.size();
+        if (std::get<1>(raw) > 0) {
+            qDebug() << "Return current. Size - " << q.size();
+            idTxOut=std::get<1>(raw);
+            return true;
+        } else
+            return false;
+    }
+    q.first();
+    // qDebug() << q.value(0).toInt() << q.value(1).toInt() << q.value(2).toInt();
+    idTxOut=q.value(0).toInt();
+    return true;
+
+}
+
+//******************************************************************************************
+//******************************************************************************************
+bool Db::setTxOutToSpent(const std::tuple<unsigned int> raw)
+{
+    QSqlQuery q(activedb);
+
+    if (!q.prepare("UPDATE btc_txout SET \"isSpent\" = true "
+                   "WHERE \"id\"= :id")) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    q.bindValue(":id",            std::get<0>(raw));
+
+    if (!q.exec()) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    return true;
+}
+
+//******************************************************************************************
+//******************************************************************************************
+bool Db::updateOutpointToTxout(const std::tuple<unsigned int, unsigned int> raw)
+{
+    QSqlQuery q(activedb);
+
+    if (!q.prepare("UPDATE btc_outpoint SET \"n_id\" =:txoutId "
+                   "WHERE \"id\"= :id")) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    q.bindValue(":id",            std::get<0>(raw));
+    q.bindValue(":txoutId",       std::get<1>(raw));
+
+    if (!q.exec()) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    return true;
+
+}
+
+//******************************************************************************************
+//******************************************************************************************
 bool Db::updateIdAddressInTxOut(const std::tuple<unsigned int> & oldAddrId,  const std::tuple<unsigned int> & newAddrId)
 {
     QSqlQuery q(activedb);
@@ -366,6 +446,30 @@ bool Db::getDublicateAddresses(std::vector<QString> & addresses)
     while (q.next())
     {
         addresses.push_back(q.value(0).toString());
+    }
+    return true;
+
+}
+
+//******************************************************************************************
+//******************************************************************************************
+bool Db::getAllOutpoint(std::vector<std::tuple<unsigned int, QString, unsigned int> > & outpoints)
+{
+    QSqlQuery q(activedb);
+
+    if (!q.prepare("SELECT id, hash, n_id "
+                   "FROM btc_outpoint "
+                   "ORDER BY id;")) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    if (!q.exec()) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    while (q.next())
+    {
+        outpoints.push_back(std::make_tuple(q.value(0).toInt(), q.value(1).toString(), q.value(2).toInt()));
     }
     return true;
 

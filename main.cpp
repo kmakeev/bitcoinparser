@@ -15,6 +15,7 @@ void help(QString patch) {
     cout << "usage: " << patch  << "\n";
     cout << "                       [-p ] <first block number> <last block number> - to limit database parsing in the specified range \n";
     cout << "                       [-r ] - to remove dublacate adresses in database \n";
+    cout << "                       [-s ] - to spent Outpoint transaction inputs \n";
 }
 
 int main(int argc, char *argv[])
@@ -55,6 +56,8 @@ int main(int argc, char *argv[])
         mode = 1;
     } else if (a.arguments().contains("-r") && a.arguments().indexOf("-r") == 1) {
         mode = 2;
+    } else if (a.arguments().contains("-s") && a.arguments().indexOf("-s") == 1) {
+        mode = 3;
     } else {
         help(argv[0]);
         return EXIT_FAILURE;
@@ -234,6 +237,34 @@ int main(int argc, char *argv[])
             }
         } else {
             qDebug() << "Read dublicate addresses from DB has ERROR!";
+            return EXIT_FAILURE;
+        }
+        break;
+    }
+    case 3: {
+        qDebug() << "Start Reading all OutPoint. Please Wait!!";
+        std::vector<std::tuple<unsigned int, QString, unsigned int> > allOutPoint;
+        if (db.getAllOutpoint(allOutPoint)) {
+            for (std::tuple<unsigned int, QString, unsigned int> & raw : allOutPoint){
+                std::tuple<unsigned int> idTxOut;
+                unsigned int id = std::get<0>(raw);
+                QString hashTx = std::get<1>(raw);
+                unsigned int n_txOut = std::get<2>(raw);
+                if (!db.getTxOutToSpent(std::make_tuple(hashTx, n_txOut), idTxOut)) {
+                    qDebug() << "Get TxOut has ERROR!";
+                    return EXIT_FAILURE;
+                }
+                if (!db.updateOutpointToTxout(std::make_tuple(id, std::get<0>(idTxOut)))) {
+                    qDebug() << "UPDATE OutPoint on new ID TxOut has ERROR!";
+                    return EXIT_FAILURE;
+                }
+                if (!db.setTxOutToSpent(std::make_tuple(std::get<0>(raw)))) {
+                    qDebug() << "UPDATE OutPoint on new ID TxOut has ERROR!";
+                    return EXIT_FAILURE;
+                }
+            }
+        } else {
+            qDebug() << "Read all OutPoin from DB has ERROR!";
             return EXIT_FAILURE;
         }
         break;
