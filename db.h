@@ -34,7 +34,7 @@ public:
     bool addTxVin(const std::tuple<unsigned int, unsigned int>  & tx_vin);
     bool addTxVout(const std::tuple<unsigned int, unsigned int>  & tx_vout);
     QVariant addTxIn(const std::tuple<unsigned int, QString>  & txIn);
-    QVariant addTxOut(const std::tuple<unsigned int, QString, int, unsigned int>  & txOut);
+    QVariant addTxOut(const std::tuple<double, QString, int, unsigned int>  & txOut);
     bool getTxOutToSpent(const std::tuple<QString, unsigned int> raw,  std::tuple<unsigned int> & idTxOut);
     bool setTxOutToSpent(const std::tuple<unsigned int> raw);
     bool updateIdAddressInTxOut(const std::tuple<unsigned int> & txOutId,  const std::tuple<unsigned int> & newTxOutId);

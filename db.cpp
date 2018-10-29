@@ -218,7 +218,7 @@ QVariant Db::addTxIn(const std::tuple<unsigned int, QString>  & txIn)
 
 //******************************************************************************************
 //******************************************************************************************
-QVariant Db::addTxOut(const std::tuple<unsigned int, QString, int, unsigned int>  & txOut)
+QVariant Db::addTxOut(const std::tuple<double, QString, int, unsigned int>  & txOut)
 {
     QSqlQuery q(activedb);
 
@@ -265,7 +265,7 @@ bool Db::getTxOutToSpent(const std::tuple<QString, unsigned int> raw,  std::tupl
     } else if (q.size()==0) {
         qDebug() << "Not Found TxOut to spent. Size - " << q.size();
         if (std::get<1>(raw) > 0) {
-            qDebug() << "Return current. Size - " << q.size();
+            qDebug() << "Return current TxOut for ID - " << std::get<1>(raw);
             idTxOut=std::get<1>(raw);
             return true;
         } else
