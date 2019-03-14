@@ -6,6 +6,7 @@
 #include "qjsonrpchttpclient.h"
 #include<QJsonDocument>
 
+#define RPCHOST "http://192.168.101.108:8332"
 /*
 
  This file defines Slassi for working with a core Bitcoin wallet using RPC

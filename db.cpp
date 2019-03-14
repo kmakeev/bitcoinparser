@@ -3,6 +3,7 @@
 #include<QFile>
 #include <QDebug>
 
+
 //******************************************************************************************
 //******************************************************************************************
 Db::Db()
@@ -15,13 +16,13 @@ Db::Db()
 //******************************************************************************************
 bool Db::createConnection()
 {
-    activedb.setHostName("localhost");
-    activedb.setDatabaseName("qttest");
+    activedb.setHostName(DBHOSTNAME);
+    activedb.setDatabaseName(DBNAME);
     activedb.setPort(5432);
     activedb.setUserName("coin");
     activedb.setPassword("coin");
     if (!activedb.open()) {
-        // qDebug() << activedb.lastError().text();
+        qDebug() << activedb.lastError().text();
         return false;
     }
     return true;
@@ -454,6 +455,30 @@ bool Db::getDublicateAddresses(std::vector<QString> & addresses)
 //******************************************************************************************
 //******************************************************************************************
 bool Db::getAllOutpoint(std::vector<std::tuple<unsigned int, QString, unsigned int> > & outpoints)
+{
+    QSqlQuery q(activedb);
+
+    if (!q.prepare("SELECT id, hash, n_id "
+                   "FROM btc_outpoint "
+                   "ORDER BY id;")) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    if (!q.exec()) {
+        qDebug() << q.lastError().databaseText();
+        return false;
+    }
+    while (q.next())
+    {
+        outpoints.push_back(std::make_tuple(q.value(0).toInt(), q.value(1).toString(), q.value(2).toInt()));
+    }
+    return true;
+
+}
+
+//******************************************************************************************
+//******************************************************************************************
+bool Db::getBlockOutpoint(std::vector<std::tuple<unsigned int, QString, unsigned int> > & outpoints, const std::tuple<int> & id)
 {
     QSqlQuery q(activedb);
 

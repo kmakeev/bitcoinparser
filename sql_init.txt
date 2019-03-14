@@ -2,7 +2,7 @@ BEGIN;
 --
 -- Create model BitcoinAddress
 --
-CREATE TABLE "btc_bitcoinaddress" ("id" serial NOT NULL PRIMARY KEY, "address" varchar(100) NOT NULL, "isUsed" boolean NULL, "comment" varchar(400) NULL);
+CREATE TABLE "btc_bitcoinaddress" ("id" serial NOT NULL PRIMARY KEY, "address" varchar(100) NOT NULL, "isUsed" boolean NULL);
 --
 -- Create model Block
 --
@@ -54,26 +54,25 @@ CREATE INDEX "btc_bitcoin_address_eb00de_idx" ON "btc_bitcoinaddress" ("address"
 --
 -- Create index btc_txout_n_bd6327_idx on field(s) n, scriptPubKey of model txout
 --
-CREATE INDEX "btc_txout_n_bd6327_idx" ON "btc_txout" ("n", "scriptPubKey");
 --
 -- Create index btc_txin_prevout_25e5a3_idx on field(s) prevout of model txin
 --
-CREATE INDEX "btc_txin_prevout_25e5a3_idx" ON "btc_txin" ("prevout_id");
+-- CREATE INDEX "btc_txin_prevout_25e5a3_idx" ON "btc_txin" ("prevout_id");
 --
 -- Create index btc_tx_hash_41abb0_idx on field(s) hash of model tx
 --
-CREATE INDEX "btc_tx_hash_41abb0_idx" ON "btc_tx" ("hash");
+-- CREATE INDEX "btc_tx_hash_41abb0_idx" ON "btc_tx" ("hash");
 --
 -- Create index btc_outpoin_hash_8fea4f_idx on field(s) hash, n of model outpoint
 --
-CREATE INDEX "btc_outpoin_hash_8fea4f_idx" ON "btc_outpoint" ("hash", "n_id");
+-- CREATE INDEX "btc_outpoin_hash_8fea4f_idx" ON "btc_outpoint" ("hash", "n_id");
 --
 -- Create index btc_block_hash_fb6990_idx on field(s) hash, hashPrevBlock, nTime of model block
 --
-CREATE INDEX "btc_block_hash_fb6990_idx" ON "btc_block" ("hash", "hashPrevBlock", "nTime");
-CREATE INDEX "btc_block_hashPrevBlock_2171a7c4_like" ON "btc_block" ("hashPrevBlock" varchar_pattern_ops);
-CREATE INDEX "btc_block_hash_1cec8877_like" ON "btc_block" ("hash" varchar_pattern_ops);
-CREATE INDEX "btc_sign_r_c2facb64_like" ON "btc_sign" ("r" text_pattern_ops);
+-- CREATE INDEX "btc_block_hash_fb6990_idx" ON "btc_block" ("hash", "hashPrevBlock", "nTime");
+-- CREATE INDEX "btc_block_hashPrevBlock_2171a7c4_like" ON "btc_block" ("hashPrevBlock" varchar_pattern_ops);
+-- CREATE INDEX "btc_block_hash_1cec8877_like" ON "btc_block" ("hash" varchar_pattern_ops);
+-- CREATE INDEX "btc_sign_r_c2facb64_like" ON "btc_sign" ("r" text_pattern_ops);
 ALTER TABLE "btc_txin" ADD CONSTRAINT "btc_txin_prevout_id_6a645bde_fk_btc_outpoint_id" FOREIGN KEY ("prevout_id") REFERENCES "btc_outpoint" ("id") DEFERRABLE INITIALLY DEFERRED;
 CREATE INDEX "btc_txin_prevout_id_6a645bde" ON "btc_txin" ("prevout_id");
 ALTER TABLE "btc_txout" ADD CONSTRAINT "btc_txout_bitcoinAddress_id_6e1d2260_fk_btc_bitcoinaddress_id" FOREIGN KEY ("bitcoinAddress_id") REFERENCES "btc_bitcoinaddress" ("id") DEFERRABLE INITIALLY DEFERRED;
