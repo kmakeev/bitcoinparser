@@ -402,6 +402,7 @@ bool Db::removeBitcoinAddress(const std::tuple<int>  & id)
     return true;
 
 }
+
 //******************************************************************************************
 //******************************************************************************************
 bool Db::getBitcoinAddresses(const std::tuple<QString> str, std::vector<int> & addresses)
@@ -425,6 +426,29 @@ bool Db::getBitcoinAddresses(const std::tuple<QString> str, std::vector<int> & a
     }
     return true;
 
+}
+
+//******************************************************************************************
+//******************************************************************************************
+bool Db::removeDublicateAddresses()
+{
+    QSqlQuery query = QSqlQuery(activedb);
+    QString strQuery;
+    QFile file(PATH_RMDUBLE_FILE);
+
+    if(!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Cannot read file " << PATH_INIT_FILE << "\n";
+        return false;
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+    strQuery = QString(data);
+    if(!query.exec(strQuery)) {
+        qDebug() << query.lastError().databaseText();
+        return false;
+    }
+    return true;
 }
 
 //******************************************************************************************
@@ -478,13 +502,10 @@ bool Db::getAllOutpoint(std::vector<std::tuple<unsigned int, QString, unsigned i
 
 //******************************************************************************************
 //******************************************************************************************
-bool Db::getBlockOutpoint(std::vector<std::tuple<unsigned int, QString, unsigned int> > & outpoints, const std::tuple<int> & id)
-{
+QVariant Db::getBlockCount(){
     QSqlQuery q(activedb);
 
-    if (!q.prepare("SELECT id, hash, n_id "
-                   "FROM btc_outpoint "
-                   "ORDER BY id;")) {
+    if (!q.prepare("select * from btc_block;")) {
         qDebug() << q.lastError().databaseText();
         return false;
     }
@@ -492,10 +513,5 @@ bool Db::getBlockOutpoint(std::vector<std::tuple<unsigned int, QString, unsigned
         qDebug() << q.lastError().databaseText();
         return false;
     }
-    while (q.next())
-    {
-        outpoints.push_back(std::make_tuple(q.value(0).toInt(), q.value(1).toString(), q.value(2).toInt()));
-    }
-    return true;
-
+    return q.size();
 }

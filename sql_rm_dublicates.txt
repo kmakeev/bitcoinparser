@@ -1,0 +1,22 @@
+create temp table to_delete_addr (min_id int NOT NULL, address varchar(100) NOT NULL);
+insert into to_delete_addr(min_id, address) (
+       select MIN(id), address from btc_bitcoinaddress group by address having count(*) >1
+    );
+    
+update btc_txout
+set "bitcoinAddress_id" = to_delete_addr.min_id
+from btc_bitcoinaddress, to_delete_addr 
+where "bitcoinAddress_id" = btc_bitcoinaddress.id
+and to_delete_addr.address=btc_bitcoinaddress.address
+and exists(
+    select min_id from to_delete_addr
+    where to_delete_addr.address=btc_bitcoinaddress.address and to_delete_addr.min_id <> btc_bitcoinaddress.id
+    );
+
+delete from btc_bitcoinaddress
+where exists(
+    select * from to_delete_addr
+    where to_delete_addr.address=btc_bitcoinaddress.address and to_delete_addr.min_id <> btc_bitcoinaddress.id
+    );
+
+drop table to_delete_addr;

@@ -3,7 +3,8 @@
 
 #define DBNAME "qttest"
 #define PATH_INIT_FILE "/Users/konstantin/qtcreator/postgresdb/sql_init.txt"
-#define DBHOSTNAME "192.168.101.173"
+#define PATH_RMDUBLE_FILE "/Users/konstantin/qtcreator/postgresdb/sql_rm_dublicates.txt"
+#define DBHOSTNAME "192.168.101.107"
 
 #include <iostream>
 #include <QSqlDatabase>
@@ -47,7 +48,8 @@ public:
     bool removeBitcoinAddress(const std::tuple<int>  & id);
     bool getDublicateAddresses(std::vector<QString> & addresses);
     bool getAllOutpoint(std::vector<std::tuple<unsigned int, QString, unsigned int> > & outpoints);
-    bool getBlockOutpoint(std::vector<std::tuple<unsigned int, QString, unsigned int> > & outpoints, const std::tuple<int>  & id);
+    QVariant getBlockCount();
+    bool removeDublicateAddresses();
 
 private:
     QSqlDatabase activedb;

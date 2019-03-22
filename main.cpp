@@ -267,30 +267,11 @@ int main(int argc, char *argv[])
         qDebug() <<  "\n FINISH!";
         break;
     case 2: {
-        std::vector<QString> addrsWithDublicate;
-        std::vector<int> addr;
-        if (db.getDublicateAddresses(addrsWithDublicate)) {
-            for (QString & raw : addrsWithDublicate){
-                qDebug() << "\r" << raw;
-                 addr.clear();
-                if (!db.getBitcoinAddresses(std::make_tuple(raw), addr)){
-                    qDebug() << "Read bitcoinaddresses list from DB has ERROR!";
-                    return EXIT_FAILURE;
-                }
-                for (int i=1; i < addr.size(); i++){
-                    // qDebug() << addr[i];
-                    if (!db.updateIdAddressInTxOut(std::make_tuple(addr[i]), std::make_tuple(addr[0]))) {
-                        qDebug() << "UPDATE TxOut on new ID bitcoinAddress has ERROR!";
-                        return EXIT_FAILURE;
-                    }
-                    if (!db.removeBitcoinAddress(std::make_tuple(addr[i]))) {
-                        qDebug() << "DELETE bitcoinaddresses from DB has ERROR!";
-                        return EXIT_FAILURE;
-                    }
-                }
-            }
+        qDebug() << "Remove is starting. Please Wait!!";
+        if (db.removeDublicateAddresses()) {
+            qDebug() << "Remove completed!!!";
         } else {
-            qDebug() << "Read dublicate addresses from DB has ERROR!";
+            qDebug() << "An error occurred while removing duplicate addresses!";
             return EXIT_FAILURE;
         }
         break;
@@ -324,9 +305,9 @@ int main(int argc, char *argv[])
         break;
     }
     case 4: {
-        QVariant currentBlockCount = client.getLastBlockNumber().toInt();
+        QVariant currentBlockCount = db.getBlockCount();
         if (!currentBlockCount.isValid()) {
-            qDebug() << "Can not get current blockcount witch RPC";
+            qDebug() << "Can not get current blockcount in Database";
             return EXIT_FAILURE;
         }
         int lastBlockNumber = currentBlockCount.toInt();
@@ -368,6 +349,9 @@ int main(int argc, char *argv[])
                     return EXIT_FAILURE;
             }
             qDebug() <<  "\nBlock paring witch spent outpoints!";
+        }
+        else {
+           qDebug() <<  "\nNeed rebuld...";
         }
         break;
     }

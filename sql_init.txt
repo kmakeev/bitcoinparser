@@ -12,10 +12,6 @@ CREATE TABLE "btc_block" ("id" serial NOT NULL PRIMARY KEY, "nVersion" integer N
 --
 CREATE TABLE "btc_outpoint" ("id" serial NOT NULL PRIMARY KEY, "hash" varchar(64) NOT NULL);
 --
--- Create model Sign
---
-CREATE TABLE "btc_sign" ("id" serial NOT NULL PRIMARY KEY, "txinid" integer NOT NULL, "r" text NOT NULL UNIQUE, "s" text NOT NULL);
---
 -- Create model Tx
 --
 CREATE TABLE "btc_tx" ("id" serial NOT NULL PRIMARY KEY, "nVersion" integer NOT NULL, "nLockTime" bigint NOT NULL, "hash" varchar(64) NOT NULL);
@@ -36,10 +32,6 @@ CREATE TABLE "btc_tx_vin" ("id" serial NOT NULL PRIMARY KEY, "tx_id" integer NOT
 --
 CREATE TABLE "btc_tx_vout" ("id" serial NOT NULL PRIMARY KEY, "tx_id" integer NOT NULL, "txout_id" integer NOT NULL);
 --
--- Create index btc_sign_r_43308a_idx on field(s) r of model sign
---
-CREATE INDEX "btc_sign_r_43308a_idx" ON "btc_sign" ("r");
---
 -- Add field n to outpoint
 --
 ALTER TABLE "btc_outpoint" ADD COLUMN "n_id" integer NULL;
@@ -50,7 +42,7 @@ CREATE TABLE "btc_block_vtx" ("id" serial NOT NULL PRIMARY KEY, "block_id" integ
 --
 -- Create index btc_bitcoin_address_eb00de_idx on field(s) address of model bitcoinaddress
 --
-CREATE INDEX "btc_bitcoin_address_eb00de_idx" ON "btc_bitcoinaddress" ("address");
+-- CREATE INDEX "btc_bitcoin_address_eb00de_idx" ON "btc_bitcoinaddress" ("address");
 --
 -- Create index btc_txout_n_bd6327_idx on field(s) n, scriptPubKey of model txout
 --
@@ -72,7 +64,6 @@ CREATE INDEX "btc_bitcoin_address_eb00de_idx" ON "btc_bitcoinaddress" ("address"
 -- CREATE INDEX "btc_block_hash_fb6990_idx" ON "btc_block" ("hash", "hashPrevBlock", "nTime");
 -- CREATE INDEX "btc_block_hashPrevBlock_2171a7c4_like" ON "btc_block" ("hashPrevBlock" varchar_pattern_ops);
 -- CREATE INDEX "btc_block_hash_1cec8877_like" ON "btc_block" ("hash" varchar_pattern_ops);
--- CREATE INDEX "btc_sign_r_c2facb64_like" ON "btc_sign" ("r" text_pattern_ops);
 ALTER TABLE "btc_txin" ADD CONSTRAINT "btc_txin_prevout_id_6a645bde_fk_btc_outpoint_id" FOREIGN KEY ("prevout_id") REFERENCES "btc_outpoint" ("id") DEFERRABLE INITIALLY DEFERRED;
 CREATE INDEX "btc_txin_prevout_id_6a645bde" ON "btc_txin" ("prevout_id");
 ALTER TABLE "btc_txout" ADD CONSTRAINT "btc_txout_bitcoinAddress_id_6e1d2260_fk_btc_bitcoinaddress_id" FOREIGN KEY ("bitcoinAddress_id") REFERENCES "btc_bitcoinaddress" ("id") DEFERRABLE INITIALLY DEFERRED;
