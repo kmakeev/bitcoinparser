@@ -1,0 +1,11 @@
+update btc_outpoint
+set "n_id" = btc_txout.id
+from btc_txout, btc_tx_vout, btc_tx
+where btc_txout.id = btc_tx_vout.txout_id
+and btc_tx.id = btc_tx_vout.tx_id
+and btc_txout.n=btc_outpoint.n_id and btc_tx.hash=btc_outpoint.hash        
+and exists(
+    select btc_txout.id, btc_txout.n, btc_tx_vout.tx_id, btc_tx.hash from btc_txout 
+    	inner join btc_tx_vout on btc_txout.id = btc_tx_vout.txout_id
+        inner join btc_tx on btc_tx.id = btc_tx_vout.tx_id and btc_txout.n=btc_outpoint.n_id and btc_tx.hash=btc_outpoint.hash
+    );

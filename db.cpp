@@ -63,21 +63,20 @@ bool Db::initialDatabase()
 
 //******************************************************************************************
 //******************************************************************************************
-QVariant Db::addBlock(const std::tuple<int, QString, QString, QDateTime, QString, int> & block)
+QVariant Db::addBlock(const std::tuple<int, QString, QDateTime, QString, int> & block)
 {
     QSqlQuery q(activedb);
 
-    if (!q.prepare("INSERT INTO btc_block (\"nVersion\", \"hashPrevBlock\", \"hashMerkleRoot\", \"nTime\", \"hash\", \"n\") "
-                   "VALUES (:nVer, :hashPrev, :hashMerkle, :nTime, :hash, :n);")) {
+    if (!q.prepare("INSERT INTO btc_block (\"nVersion\", \"hashPrevBlock\", \"nTime\", \"hash\", \"n\") "
+                   "VALUES (:nVer, :hashPrev, :nTime, :hash, :n);")) {
         qDebug() << q.lastError().databaseText();
-        return false;
+        return QVariant();
     }
     q.bindValue(":nVer",        std::get<0>(block));
     q.bindValue(":hashPrev",    std::get<1>(block));
-    q.bindValue(":hashMerkle",  std::get<2>(block));
-    q.bindValue(":nTime",       std::get<3>(block));
-    q.bindValue(":hash",        std::get<4>(block));
-    q.bindValue(":n",           std::get<5>(block));
+    q.bindValue(":nTime",       std::get<2>(block));
+    q.bindValue(":hash",        std::get<3>(block));
+    q.bindValue(":n",           std::get<4>(block));
     if (!q.exec()) {
         qDebug() << q.lastError().databaseText();
         return QVariant();
@@ -223,8 +222,8 @@ QVariant Db::addTxOut(const std::tuple<double, QString, int, unsigned int>  & tx
 {
     QSqlQuery q(activedb);
 
-    if (!q.prepare("INSERT INTO btc_txout (\"nValue\", \"scriptPubKey\", \"n\", \"isSpent\", \"bitcoinAddress_id\") "
-                   "VALUES (:nVal, :script, :n, false, :addr);")) {
+    if (!q.prepare("INSERT INTO btc_txout (\"nValue\", \"scriptPubKey\", \"n\", \"bitcoinAddress_id\") "
+                   "VALUES (:nVal, :script, :n, :addr);")) {
         qDebug() << q.lastError().databaseText();
         return QVariant();
     }
@@ -370,8 +369,8 @@ QVariant Db::addBitcoinAddress(const std::tuple<QString>  & address)
 {
     QSqlQuery q(activedb);
 
-    if (!q.prepare("INSERT INTO btc_bitcoinaddress (\"address\", \"isUsed\") "
-                   "VALUES (:address, false);")) {
+    if (!q.prepare("INSERT INTO btc_bitcoinaddress (\"address\") "
+                   "VALUES (:address);")) {
         qDebug() << q.lastError().databaseText();
         return QVariant();
     }
@@ -435,6 +434,29 @@ bool Db::removeDublicateAddresses()
     QSqlQuery query = QSqlQuery(activedb);
     QString strQuery;
     QFile file(PATH_RMDUBLE_FILE);
+
+    if(!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Cannot read file " << PATH_INIT_FILE << "\n";
+        return false;
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+    strQuery = QString(data);
+    if(!query.exec(strQuery)) {
+        qDebug() << query.lastError().databaseText();
+        return false;
+    }
+    return true;
+}
+
+//******************************************************************************************
+//******************************************************************************************
+bool Db::spentAllOutpoints()
+{
+    QSqlQuery query = QSqlQuery(activedb);
+    QString strQuery;
+    QFile file(PATH_SPENT_FILE);
 
     if(!file.open(QIODevice::ReadOnly)) {
         qDebug() << "Cannot read file " << PATH_INIT_FILE << "\n";

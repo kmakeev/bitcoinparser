@@ -28,7 +28,7 @@ QVariant parseBlock(QJsonValue & result, int c, bool witchSpent=false){
         hashPrevBlock = result.toObject().value("previousblockhash").toString();
 
     auto block = std::make_tuple(result.toObject().value("version").toInt(), hashPrevBlock,
-                                 result.toObject().value("merkleroot").toString(), QDateTime::fromTime_t(result.toObject().value("time").toInt()),
+                                 QDateTime::fromTime_t(result.toObject().value("time").toInt()),
                                  result.toObject().value("hash").toString(), result.toObject().value("height").toInt());
 
     QVariant block_id = db.addBlock(block);
@@ -278,28 +278,11 @@ int main(int argc, char *argv[])
     }
     case 3: {
         qDebug() << "Start Reading all OutPoint. Please Wait!!";
-        std::vector<std::tuple<unsigned int, QString, unsigned int> > allOutPoint;
-        if (db.getAllOutpoint(allOutPoint)) {
-            for (std::tuple<unsigned int, QString, unsigned int> & raw : allOutPoint){
-                std::tuple<unsigned int> idTxOut;
-                unsigned int id = std::get<0>(raw);
-                QString hashTx = std::get<1>(raw);
-                unsigned int n_txOut = std::get<2>(raw);
-                if (!db.getTxOutToSpent(std::make_tuple(hashTx, n_txOut), idTxOut)) {
-                    qDebug() << "Get TxOut has ERROR!";
-                    return EXIT_FAILURE;
-                }
-                if (!db.updateOutpointToTxout(std::make_tuple(id, std::get<0>(idTxOut)))) {
-                    qDebug() << "UPDATE OutPoint on new ID TxOut has ERROR!";
-                    return EXIT_FAILURE;
-                }
-                if (!db.setTxOutToSpent(std::make_tuple(std::get<0>(idTxOut)))) {
-                    qDebug() << "UPDATE OutPoint on new ID TxOut has ERROR!";
-                    return EXIT_FAILURE;
-                }
-            }
+
+        if (db.spentAllOutpoints()) {
+            qDebug() << "Remove completed!!!";
         } else {
-            qDebug() << "Read all OutPoin from DB has ERROR!";
+            qDebug() << "An error occurred while removing duplicate addresses!";
             return EXIT_FAILURE;
         }
         break;

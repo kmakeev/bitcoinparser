@@ -4,7 +4,8 @@
 #define DBNAME "qttest"
 #define PATH_INIT_FILE "/Users/konstantin/qtcreator/postgresdb/sql_init.txt"
 #define PATH_RMDUBLE_FILE "/Users/konstantin/qtcreator/postgresdb/sql_rm_dublicates.txt"
-#define DBHOSTNAME "192.168.101.107"
+#define PATH_SPENT_FILE "/Users/konstantin/qtcreator/postgresdb/sql_spent.txt"
+#define DBHOSTNAME "192.168.101.113"
 
 #include <iostream>
 #include <QSqlDatabase>
@@ -30,7 +31,7 @@ public:
     bool createConnection();
     bool isNewDatabase();
     bool initialDatabase();
-    QVariant addBlock(const std::tuple<int, QString, QString, QDateTime, QString, int>  & block);
+    QVariant addBlock(const std::tuple<int, QString, QDateTime, QString, int>  & block);
     QVariant addTxs(const std::vector<std::tuple<int, unsigned int, QString> >  & txs);
     QVariant addTx(const std::tuple<int, unsigned int, QString>  & txs);
     bool addBlockVtx(const std::tuple<unsigned int, unsigned int>  & block_vtx);
@@ -50,6 +51,7 @@ public:
     bool getAllOutpoint(std::vector<std::tuple<unsigned int, QString, unsigned int> > & outpoints);
     QVariant getBlockCount();
     bool removeDublicateAddresses();
+    bool spentAllOutpoints();
 
 private:
     QSqlDatabase activedb;
