@@ -5,7 +5,7 @@
 #define PATH_INIT_FILE "/Users/konstantin/qtcreator/postgresdb/sql_init.txt"
 #define PATH_RMDUBLE_FILE "/Users/konstantin/qtcreator/postgresdb/sql_rm_dublicates.txt"
 #define PATH_SPENT_FILE "/Users/konstantin/qtcreator/postgresdb/sql_spent.txt"
-#define DBHOSTNAME "192.168.101.113"
+#define DBHOSTNAME "localhost"
 
 #include <iostream>
 #include <QSqlDatabase>

@@ -75,15 +75,11 @@ QVariant parseBlock(QJsonValue & result, int c, bool witchSpent=false){
                     if (!db.getTxOutToSpent(std::make_tuple(txvin[j].toObject().value("txid").toString(),
                                                             txvin[j].toObject().value("vout").toInt()), idTxOut)) {
                         qDebug() << "Get TxOut has ERROR!";
-                        return EXIT_FAILURE;
+                        return QVariant();
                     }
                     if (!db.updateOutpointToTxout(std::make_tuple(outpoint_id.toInt(), std::get<0>(idTxOut)))) {
                         qDebug() << "UPDATE OutPoint on new ID TxOut has ERROR!";
-                        return EXIT_FAILURE;
-                    }
-                    if (!db.setTxOutToSpent(std::make_tuple(std::get<0>(idTxOut)))) {
-                        qDebug() << "UPDATE OutPoint on new ID TxOut has ERROR!";
-                        return EXIT_FAILURE;
+                        return QVariant();
                     }
                 }
                 QVariant txvin_id = db.addTxIn(std::make_tuple(outpoint_id.toInt(),
@@ -115,18 +111,18 @@ QVariant parseBlock(QJsonValue & result, int c, bool witchSpent=false){
                 addresses.clear();
                 if (!db.getBitcoinAddresses(std::make_tuple(addr), addresses)){
                     qDebug() << "Read bitcoinaddresses list from DB has ERROR!";
-                    return EXIT_FAILURE;
+                    return QVariant();
                 }
                 if (addresses.size() > 1){
                     for (int i=1; i < addresses.size(); i++){
                         // qDebug() << addr[i];
                         if (!db.updateIdAddressInTxOut(std::make_tuple(addresses[i]), std::make_tuple(addresses[0]))) {
                             qDebug() << "UPDATE TxOut on new ID bitcoinAddress has ERROR!";
-                            return EXIT_FAILURE;
+                            return QVariant();
                         }
                         if (!db.removeBitcoinAddress(std::make_tuple(addresses[i]))) {
                             qDebug() << "DELETE bitcoinaddresses from DB has ERROR!";
-                            return EXIT_FAILURE;
+                            return QVariant();
                         }
                     }
                     addr_id = QVariant(addresses[0]);
@@ -329,6 +325,7 @@ int main(int argc, char *argv[])
         } else if (!needRebuild && isLast) {
             QVariant block_id = parseBlock(result, currentBlockNumber, true);
             if (!block_id.isValid()) {
+                    qDebug() << "An error occurred while parse block!" << currentBlockNumber;
                     return EXIT_FAILURE;
             }
             qDebug() <<  "\nBlock paring witch spent outpoints!";
